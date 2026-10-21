@@ -1,0 +1,294 @@
+FONDATIONLAB
+Pression moyenne sous une semelle et incertitude sur la charge
+Version 1.0.0 - Application pedagogique en francais
+
+PUBLIC ET OBJECTIF
+=================
+Etudiants de genie civil et enseignants. Comprendre comment une charge
+verticale centree se repartit sur une surface rectangulaire idealisee.
+L'application demarre directement, sans connexion et sans service externe.
+Aucun secret ni cle API n'est necessaire.
+
+Ce modele ne dimensionne pas une fondation reelle. Il ne calcule pas la
+portance du sol, les tassements, le ferraillage, le poinconnement, la flexion,
+les charges excentrees, le glissement ni la conformite reglementaire.
+Le seuil fourni n'est pas une resistance du sol determinee par l'application.
+Un ratio inferieur a 100 % ne constitue pas une validation de l'ouvrage.
+
+FICHIERS LIVRES
+===============
+app.py            Calculs, interface, HTML/CSS, schemas, imports et exports.
+requirement.text  Liste des bibliotheques pour l'installation locale.
+README            Installation, fonctionnement, tests et deploiement.
+
+Conserver les tests, captures, sauvegardes et archives hors de ce dossier.
+Aucun fichier de donnees ou de configuration n'est cree par le code.
+Les schemas sont integres : aucune image distante n'est necessaire.
+
+INSTALLATION WINDOWS / VS CODE
+=============================
+1. Installer Python depuis https://www.python.org/downloads/windows/
+   Activer l'ajout de Python au PATH pendant l'installation.
+   Le fonctionnement local a ete verifie avec Python 3.14 et Streamlit 1.65.
+   Pour le Cloud, choisir la meme version Python si elle est proposee.
+   Une autre version necessite une nouvelle installation et verification.
+
+2. Dans VS Code, ouvrir le dossier fondationlab, puis Terminal > Nouveau
+   terminal. Choisir l'interpreteur Python avec l'extension Python de Microsoft.
+
+3. Verifier l'interpreteur :
+
+   python --version
+   python -m pip --version
+
+4. Installer les bibliotheques depuis le dossier fondationlab :
+
+   python -m pip install -r requirement.text
+
+5. Demarrer :
+
+   python -m streamlit run app.py
+
+6. Ouvrir l'adresse locale affichee. Arreter avec Ctrl+C dans le terminal.
+   Si le port est occupe :
+
+   python -m streamlit run app.py --server.port 8530
+
+En cas de commande python introuvable, corriger l'installation ou utiliser
+le chemin complet de l'interpreteur. Pour une erreur ModuleNotFoundError,
+relancer l'installation avec le meme interpreteur que celui du lancement.
+Streamlit 1.65 minimum est requis pour les composants et API utilises.
+
+ROLE DES BIBLIOTHEQUES
+=====================
+streamlit  : interface, formulaires, session, navigation, composants v2.
+numpy      : tableaux numeriques et tirages triangulaires reproductibles.
+pandas     : tableaux, CSV et Excel.
+scipy      : loi triangulaire analytique et intervalle binomial exact.
+plotly     : graphiques interactifs, zoom et valeurs au survol.
+openpyxl   : lecture et ecriture des fichiers Excel .xlsx.
+reportlab  : rapports PDF avec tableaux et coupe vectorielle.
+
+Les modules io, math, copy, datetime, html et zipfile sont integres a Python.
+Ils ne doivent pas etre installes separement.
+
+PARCOURS DE L'APPLICATION
+========================
+Tableau de bord
+  Formulaire de charge, dimensions et seuil ; quatre indicateurs ; coupe et
+  plan de la semelle ; courbe de pression selon la largeur ; calcul detaille.
+
+Comparer
+  Comparaison du cas actif avec une variante de dimensions. La charge et le
+  seuil sont identiques pour isoler l'effet de la surface. Les deux plans,
+  les pressions, les surfaces et leur variation sont affiches.
+
+Incertitudes
+  Charge triangulaire definie par minimum, valeur la plus probable et
+  maximum. Dimensions et seuil fixes. Monte-Carlo, probabilite analytique,
+  IC binomial exact a 95 %, histogramme, courbe de depassement et quantiles.
+
+Donnees et rapports
+  Export du cas actif en CSV/Excel, rapport PDF, comparaison en CSV et
+  tirages simules en CSV. Import CSV/Excel avec previsualisation et
+  confirmation avant remplacement du cas actif. Comparaison des lignes
+  importees, chacune avec sa propre charge et son propre seuil.
+
+Comprendre et tester
+  Principe, unites, quiz, formules, hypotheses, limites et tests guides.
+  Sept controles numeriques peuvent etre executes depuis cette rubrique.
+
+L'aperçu de depart est explicitement fictif et n'est pas enregistre comme
+un cas utilisateur. Le bouton Exemple fictif demande une confirmation
+avant de remplacer un cas actif. Aucun exemple n'est fusionne aux imports.
+Le formulaire du tableau de bord enregistre des hypotheses saisies, pas
+des mesures de terrain certifiees.
+
+Les donnees ne sont conservees que dans la session Streamlit. Elles ne
+sont pas partagees entre sessions. Exporter les cas utiles : un redemarrage
+ou une nouvelle session peut les effacer. Aucun stockage permanent.
+
+CALCULS ET HYPOTHESES
+====================
+N : charge verticale totale, en kN.
+L : longueur, en m. B : largeur, en m.
+A = L * B, en m2.
+q = N / A, en kPa, car 1 kPa = 1 kN/m2.
+Ratio (%) = 100 * q / seuil.
+Ecart (kPa) = seuil - q. Un ecart negatif indique un depassement du seuil.
+
+N doit inclure les poids consideres dans l'exercice. Le poids propre de
+la semelle n'est pas calcule ou ajoute automatiquement.
+La coupe ne calcule ni l'epaisseur de la semelle ni les dimensions du poteau.
+Le plan represente le rapport L/B ; les textes restent lisibles separement.
+Le contact est suppose integral et la pression uniforme.
+
+La largeur B = N / (L * seuil) affiche une egalite algebrique uniquement.
+Ce n'est ni une dimension recommandee, ni une verification de fondation.
+
+Incertitudes : N suit une loi triangulaire (a, m, b).
+Respecter 0 <= a <= m <= b. Si a = m = b, la charge est constante.
+E[N] = (a + m + b) / 3.
+Var(N) = (a*a + m*m + b*b - a*m - a*b - m*b) / 18.
+P(q > seuil) = P(N > seuil * L * B).
+Le depassement est strict : l'egalite ne compte pas comme depassement.
+Les quantiles sont calcules avec la loi analytique et compares aux tirages.
+Une graine identique reproduit les memes tirages dans cet environnement.
+L'IC exact de Clopper-Pearson concerne l'erreur Monte-Carlo uniquement.
+Il ne mesure pas l'incertitude du modele ou celle des trois charges saisies.
+Aucune probabilite d'effondrement n'est calculee.
+
+LIMITES DE SAISIE
+================
+Longueur et largeur : de 0,10 a 50 m.
+Charge : de 0 a 10 000 000 kN.
+Seuil : de 0,1 a 100 000 kPa.
+Ces bornes sont des garde-fous logiciels, pas des plages reglementaires.
+Noms : de 1 a 80 caracteres, sans caractere de controle.
+Simulation : 1 000 a 100 000 tirages ; graine entiere positive ou nulle.
+
+TESTS A REPRODUIRE
+=================
+1. Tableau de bord : charger l'exemple fictif depuis la barre laterale.
+   L = 2 m ; B = 1,5 m ; N = 300 kN ; seuil fictif = 110 kPa.
+   Attendu : A = 3 m2, q = 100 kPa, ratio = 90,909... %, ecart = 10 kPa.
+   Verifier les vues Coupe et Plan.
+
+2. Modifier B a 2 m et calculer.
+   Attendu : A = 4 m2, q = 75 kPa, ratio = 68,1818... %.
+   Recharger ensuite l'exemple fictif.
+
+3. Comparer : variante L = 2 m et B = 2 m.
+   Attendu : A = 100 kPa ; B = 75 kPa ; ecart B-A = -25 kPa ;
+   variation de pression = -25 % ; surface supplementaire = 1 m2.
+
+4. Incertitudes : a = 240, m = 300, b = 360 kN ; 20 000 tirages ; graine 42.
+   Attendu analytique : P(q > 110) = 0,125 = 12,5 %.
+   Car N > 330 et (360-330)^2 / [(360-240)*(360-300)] = 0,125.
+   Pression moyenne = 100 kPa ; ecart-type = 8,1649658 kPa.
+   Quantile 95 % = 113,6754447 kPa.
+   La simulation doit etre proche, pas necessairement egale a la theorie.
+
+5. Charges constantes : a = m = b = 330 kN.
+   Attendu : q = 110 kPa ; P(q > 110) = 0 %.
+   Avec 360 kN : q = 120 kPa ; probabilite = 100 %.
+   Avec N = 0 kN au tableau de bord : q = 0 kPa.
+
+6. Donnees : exporter le cas CSV/Excel ; preparer le PDF et le telecharger.
+   Charger le modele fictif CSV : deux lignes, q = 100 et 75 kPa.
+   L'import ne remplace le cas actif qu'apres confirmation.
+   Tester aussi un Excel exporte : memes colonnes et memes resultats.
+
+7. Essayer un nom vide, minimum > maximum, fichier sans les bonnes
+   colonnes, doublon de nom ou valeur non numerique : message d'erreur.
+   Les dimensions nulles ou negatives sont interdites.
+
+8. Modifier le cas actif apres une simulation : celle-ci et l'ancienne
+   comparaison sont effacees. Un nouveau PDF doit etre prepare.
+   Une nouvelle simulation ou comparaison invalide le PDF precedent.
+
+FORMAT D'IMPORT
+===============
+Colonnes requises, avec l'orthographe et la casse suivantes :
+nom,longueur_m,largeur_m,charge_kN,seuil_kPa
+Exemple :
+Semelle A fictive,2,1.5,300,110
+Semelle B fictive,2,2,300,110
+
+CSV : UTF-8, virgule ou point-virgule comme separateur ; utiliser le point
+decimal dans le modele fourni. Virgules decimales acceptees dans les
+champs si le separateur du fichier est le point-virgule.
+Excel : .xlsx, premiere feuille uniquement, cellules numeriques.
+1 a 100 lignes, fichier de 5 Mo maximum ; noms distincts.
+Les colonnes de resultats eventuelles sont ignorees et les calculs refaits.
+Des champs textuels debutant par des caracteres de formule sont proteges
+lors des exports CSV/Excel pour eviter leur evaluation dans un tableur.
+Un classeur decompresse superieur a 20 Mo est refuse.
+
+GITHUB ET STREAMLIT COMMUNITY CLOUD
+==================================
+Le dossier local livre garde exactement les trois fichiers demandes.
+Community Cloud ne detecte pas requirement.text comme fichier de
+dependances. Il attend le nom standard requirements.txt pour la methode
+pip utilisee ici. Sans cela, scipy, plotly, openpyxl et reportlab peuvent
+manquer sur le serveur.
+
+Preparer une copie distincte pour le deploiement, depuis le dossier local :
+
+   New-Item -ItemType Directory -Path ..\fondationlab-deploiement
+   Copy-Item -LiteralPath .\app.py -Destination ..\fondationlab-deploiement\app.py
+   Copy-Item -LiteralPath .\requirement.text -Destination ..\fondationlab-deploiement\requirements.txt
+   Copy-Item -LiteralPath .\README -Destination ..\fondationlab-deploiement\README.md
+   Set-Location ..\fondationlab-deploiement
+
+Choisir un nouveau nom de dossier si cette copie existe deja, ou mettre
+a jour uniquement ses trois fichiers apres sauvegarde de vos changements.
+Ne pas renommer le fichier requirement.text dans le dossier local livre.
+
+Dans GitHub, creer un nouveau depot fondationlab, sans initialiser de
+README distant si vous suivez les commandes de premier envoi ci-dessous.
+Dans le terminal VS Code ouvert sur fondationlab-deploiement :
+
+   git init
+   git add .
+   git commit -m "Premiere version de FondationLab"
+   git branch -M main
+   git remote add origin https://github.com/gc7258728-cmyk/fondationlab.git
+   git remote -v
+   git push -u origin main
+
+Cette URL correspond a un depot A CREER, pas a un depot deja verifie.
+Si votre compte differe, remplacer gc7258728-cmyk par votre identifiant.
+S'il existe deja un remote origin, verifier git remote -v puis utiliser :
+
+   git remote set-url origin https://github.com/gc7258728-cmyk/fondationlab.git
+
+Si Git demande votre identite, utiliser vos propres nom et adresse avec
+git config user.name et git config user.email ; aucun jeton dans le code.
+Ne pas forcer un envoi si le depot contient deja des modifications :
+recuperer et examiner les changements distants avant de poursuivre.
+
+Sur https://share.streamlit.io/ : creer une application, autoriser GitHub,
+selectionner le depot, la branche main et le fichier app.py a la racine.
+Avec Paste URL, utiliser l'URL DU FICHIER :
+https://github.com/gc7258728-cmyk/fondationlab/blob/main/app.py
+Verifier la version Python dans les reglages avances, puis deployer.
+Tester chaque rubrique et les exports depuis l'URL publique obtenue.
+Aucun deploiement distant ni envoi GitHub n'a ete execute automatiquement.
+
+MISES A JOUR APRES DEPLOIEMENT
+=============================
+1. Modifier et tester le dossier local livre.
+2. Reporter les trois fichiers dans fondationlab-deploiement, en gardant
+   requirements.txt et README.md dans cette copie.
+3. Dans le terminal de la copie reliee a GitHub :
+
+   git status
+   git add .
+   git commit -m "Amelioration de FondationLab"
+   git push
+
+4. Verifier les journaux Streamlit et le nouveau comportement en ligne.
+   Ne pas creer un deuxieme app.py ni ajouter des versions numerotees.
+
+VERIFICATIONS
+=============
+34 tests automatises locaux ont reussi : calculs, lois probabilistes,
+validations, imports/exports, navigation et invalidation des anciens resultats.
+Le parcours navigateur a ete teste aux largeurs 1440, 768, 390 et 320 px,
+y compris comparaison, simulation, import et telechargement PDF.
+Le PDF de reference a ete rendu et controle visuellement ; son texte
+reste dans les marges. Les tests et captures sont hors de ce dossier.
+Les exemples chiffres ci-dessus sont les references a reproduire.
+La compatibilite Cloud et les controles sur appareil physique doivent
+etre verifies lors de votre deploiement, sans les confondre avec les tests
+locaux de navigateur.
+
+SOURCES
+=======
+FHWA, Soils and Foundations, NHI-06-089 :
+https://highways.dot.gov/sites/fhwa.dot.gov/files/FHWA-NHI-06-089.pdf
+SciPy, loi triangulaire :
+https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.triang.html
+Streamlit, dependances de Community Cloud :
+https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/app-dependencies
